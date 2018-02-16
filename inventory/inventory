@@ -1,0 +1,14 @@
+# every non-executable file you place here
+# will be treated as a static inventory file by ansible
+# according to ../ansible.cfg
+#
+# ! do not place passwords here !
+#
+# if you feel the urge to place a password here
+# do something like
+#
+# ln -s ~/.secure/aws-static-inventory inventory
+# 
+#
+# because IT IS A VERY BAD IDEA TO STORE PASSWORDS
+# IN A CODE OR INFRASTRUCTURE REPO

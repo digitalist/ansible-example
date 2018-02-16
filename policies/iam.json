@@ -1,0 +1,31 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DeleteTags",
+                "ec2:DeleteRouteTable",
+                "ec2:DeleteVolume",
+                "ec2:StartInstances",
+                "ec2:CreateNetworkInterfacePermission",
+                "ec2:DeleteNetworkAcl",
+                "ec2:DetachVolume",
+                "ec2:RebootInstances",
+                "ec2:TerminateInstances",
+                "ec2:CreateTags",
+                "ec2:RunInstances",
+                "ec2:StopInstances",
+                "ec2:CreateVolume",
+                "ec2:DisassociateIamInstanceProfile",
+                "ec2:AssociateIamInstanceProfile",
+                "ec2:DeleteNetworkAclEntry",
+                "ec2:DescribeKeyPairs",
+                "ec2:CreateKeyPair",
+                "ec2:ImportKeyPair"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

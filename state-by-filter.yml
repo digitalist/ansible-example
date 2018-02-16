@@ -1,0 +1,42 @@
+# this book gathers facts about all instances filtered by tag name
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+  - include_vars: "ec-vars.yml"
+  - name: "facts"
+    ec2_instance_facts:
+      filters:
+        "tag:Name": "{{ etag }}"
+  # place ec2_instance_facts into a variable
+    register: ec2
+
+  # https://blog.crisp.se/2016/10/20/maxwenzin/how-to-append-to-lists-in-ansible
+  - name: init aws instance ids list
+    set_fact:
+      ids: []
+
+  # dump number of instances
+  - debug:
+      msg: "{{ ec2.instances|length }}"
+  - debug:
+      msg: "{{ ec2.instances }}"
+
+  # collect instance_ids to ids[] list
+  - with_items: " {{ec2.instances}} "
+    set_fact:
+      ids: "{{ ids }} + [ '{{ item.instance_id }}' ]"
+
+  # dump instance_ids
+  - debug:
+      msg: "{{ ids }}"
+
+  - ec2:
+      instance_ids: '{{ ids }}'
+      region: '{{ ec_region }}'
+      #state: absent
+      # we stop before we kill
+      state: "{{ ec_kill_state }}"
+
+      #wait: True
+      wait: False

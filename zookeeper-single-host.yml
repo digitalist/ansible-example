@@ -1,0 +1,7 @@
+
+- name: Installing ZooKeeper
+  # client will be installed to ./opt/zookeeper-%VERSION%/bin/zkCli.sh: ./opt/zookeeper-3.4.11/bin/zkCli.sh
+  hosts: works
+  become: true
+  roles:
+    - role: AnsibleShipyard.ansible-zookeeper

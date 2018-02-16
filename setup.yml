@@ -1,0 +1,50 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  tasks:
+  - include_vars: "ec-vars.yml"
+  - name: Provision a set of instances
+    ec2:
+      key_name: "{{ ec_key }}"
+      region: "{{ ec_region }}"
+      group: "{{ ec_group }}"
+      instance_type: "{{ ec_instance_type }}"
+      image: "{{ ami_id }}"
+      wait: True
+      exact_count: "{{ ec_exact_count }}"
+      count_tag:
+        Name: "{{ ec_tag }}"
+      instance_tags:
+        Name: "{{ ec_tag }}"
+      volumes:
+      - device_name: /dev/sda1
+        device_type: gp2
+        volume_size: 30
+        delete_on_termination: true
+    register: ec2
+
+  - name: init aws instance ids list
+    set_fact:
+      ids: []
+
+  - debug:
+      msg: "{{ ec2 }}"
+
+  - name: Add all instance public IPs to host group
+    add_host: hostname={{ item.public_ip }} groups=ec2hosts
+    with_items: "{{ ec2.instances }}"
+
+  # register ids, so we can address them later
+  - with_items: "{{ ec2.instances }} "
+    set_fact:
+      ids: "{{ ids }} + [ '{{ item.id }}' ]"
+
+  # let's tag first instance as Role:master, we'll be using it
+  # as our main server for some tasks
+  - ec2_tag:
+      region: "{{ ec_region }}"
+      resource: "{{ ids[0] }}"
+      tags:
+        Role: master
+        # Name: zookeeper

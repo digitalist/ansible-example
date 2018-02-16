@@ -1,0 +1,53 @@
+- name: Install Clang
+  hosts: "{{etag | default('tag_Name_zookeeper')}}"
+  become: true
+#  vars:
+#    item:
+  tasks:
+  - name: set clang version
+    set_fact:
+      clang_version: 6.0
+  - name: Add an Apt signing key, uses whichever key is at the URL
+    apt_key:
+      url: https://apt.llvm.org/llvm-snapshot.gpg.key
+      state: present
+  - name: ccache clang link
+    file:
+      src: "clang-6.0"
+      dest: "/usr/lib/ccache/clang-6.0"
+      state: link
+      force: yes
+  - name: ccache clang++ link
+    file:
+      src: "clang++-6.0"
+      dest: "/usr/lib/ccache/clang++-6.0"
+      state: link
+      force: yes
+  - name: deb
+    apt_repository:
+      repo: "deb http://apt.llvm.org/{{ ansible_distribution_release }}/ llvm-toolchain-{{ ansible_distribution_release }}-{{ clang_version }} main"
+      state: present
+  - name: deb-src
+    apt_repository:
+      repo: "deb-src http://apt.llvm.org/{{ ansible_distribution_release }}/ llvm-toolchain-{{ ansible_distribution_release }}-{{ clang_version }} main"
+      state: present
+  - name: update cache
+    apt:
+      update_cache: yes
+  - name: Install clang6
+    package:
+      state: present
+      name: "{{ item }}"
+    with_items: ["clang-{{ clang_version }}", "lldb-{{ clang_version }}"]
+  - name: ccache clang link
+    file:
+      src: "../../bin/ccache"
+      dest: "/usr/lib/ccache/clang-6.0"
+      state: link
+      force: yes
+  - name: ccache clang++ link
+    file:
+      src: "../../bin/ccache"
+      dest: "/usr/lib/ccache/clang++-6.0"
+      state: link
+      force: yes

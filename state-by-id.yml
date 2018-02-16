@@ -1,0 +1,16 @@
+# this book gathers facts about all instances filtered by tag name
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+  - include_vars: "ec-vars.yml"
+
+  - ec2:
+      instance_ids: '{{ ids }}'
+      region: '{{ ec_region }}'
+      #state: absent
+      # we stop before we kill
+      state: "{{ ec_kill_state }}"
+
+      #wait: True
+      wait: False

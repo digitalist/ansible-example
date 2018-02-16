@@ -1,0 +1,46 @@
+#cat /etc/metrika.xml
+
+- name: set zookeper config
+  # client will be installed to ./opt/zookeeper-%VERSION%/bin/zkCli.sh: ./opt/zookeeper-3.4.11/bin/zkCli.sh
+  hosts: "{{etag | default('tag_Name_zookeeper')}}"
+  tasks:
+  - name: setup template
+    set_fact:
+        zookeeper_hosts: "
+        {%- set ips = [] %}
+        {%- set xml_node = '' %}
+        {%- set master_host = groups['tag_Name_zookeeper'][0] %}
+        {%- for zk in groups['tag_Name_zookeeper'] %}
+          {%- set internal_ip = hostvars[zk]['ansible_default_ipv4']['address'] %}
+          {%- set j = loop.index | string %}
+            {{- ips.append('<node id=\"'+ j+'\"><host>'+internal_ip+'</host><port>2181</port></node>' ) -}}
+        {%- endfor %}
+        {%- set ips = ips | join (' ') %}
+        {%- set xml_node = '<zookeeper>'+ips+'</zookeeper>' %}
+        {{- xml_node -}}
+        "
+  - name: dbg
+    debug: var=zookeeper_hosts
+  - name: reset metrika.xml
+    become: true
+    file:
+      name: /etc/metrika.xml
+      state: absent
+
+  - name: add zookeeper node to config
+    become: true
+    lineinfile:
+      dest: /etc/metrika.xml
+      line: "<yandex><zookeeper>{{ zookeeper_hosts }}</zookeeper></yandex>"
+      state: present
+      create: true
+  - name: start zookeeper
+    become: true
+    service:
+      name: zookeeper
+      state: restarted
+  - name: start clickhouse-server
+    become: true
+    service:
+      name: clickhouse-server
+      state: restarted

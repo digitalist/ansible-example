@@ -1,0 +1,12 @@
+# modified  cluster example from https://github.com/AnsibleShipyard/ansible-zookeeper
+
+- name: Installing ZooKeeper Cluster
+  # client will be installed to ./opt/zookeeper-%VERSION%/bin/zkCli.sh: ./opt/zookeeper-3.4.11/bin/zkCli.sh
+  hosts: "{{etag | default('tag_Name_zookeeper[0]')}}"
+  tasks:
+  - name: get stable branch
+    git:
+      repo: https://github.com/yandex/ClickHouse.git
+      dest: "/home/{{remote_user}}/build/cl/ClickHouse"
+      recursive: yes
+      version: stable

@@ -1,0 +1,7 @@
+---
+
+- hosts: "{{ ehosts | default('all') }}"
+  gather_facts: False
+  become: true
+  tasks:
+    - action: ping

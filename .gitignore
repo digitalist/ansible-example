@@ -1,0 +1,7 @@
+/inventory/test_inventory
+
+/.idea/
+/temp/
+
+*.retry
+

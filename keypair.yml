@@ -1,0 +1,14 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  tasks:
+  - include_vars: "ec-vars.yml"
+  - name: default ec2 key
+    ec2_key:
+      name: default_ec2_key
+      region: "{{ ec_region }}"
+      key_material: "{{ item }}"
+    #IAM permissions needed: "ec2:CreateKeyPair", "ec2:ImportKeyPair"
+    #create keys: ssh-keygen -f ~/.ssh/default_ec2_key.pub
+    with_file: ~/.ssh/default_ec2_key.pub

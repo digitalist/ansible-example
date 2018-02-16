@@ -1,0 +1,10 @@
+# modified  cluster example from https://github.com/AnsibleShipyard/ansible-zookeeper
+- name: Clickhouse install dependencies
+  hosts: "{{etag | default('tag_Name_zookeeper')}}"
+  become: true
+  tasks:
+  - name: Install dev-libs
+    package:
+      state: present
+      name: "{{ item }}"
+    with_items: [libncurses5-dev , libicu-dev, libreadline-dev, libssl-dev, libmysqlclient-dev, unixodbc-dev, devscripts, dupload, fakeroot, debhelper,  git, cmake, pbuilder, g++, gcc-6, gcc-7, llvm-5.0, liblld-5.0-dev, libclang-5.0-dev, liblld-5.0]

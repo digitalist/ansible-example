@@ -1,0 +1,94 @@
+# these variables will be used in environment later:
+# export PATH="/usr/lib/ccache/:$PATH"
+# export CCACHE_PREFIX="distcc"
+
+- name: Distcc and ccache installl
+  hosts: "{{etag | default('tag_Name_zookeeper')}}"
+  become: true
+  tasks:
+  - name: install ccache
+    apt:
+      name: ccache
+      state: present
+      update_cache: yes
+    tags: apt
+  - name: install distcc
+    tags: distcc
+    apt:
+      name: distcc
+      state: present
+      update_cache: no
+  - name: distcc daemon setup
+    tags: distcc
+    lineinfile:
+      path: /etc/default/distcc
+      regexp: '^STARTDISTCC'
+      line: 'STARTDISTCC="true"'
+  - name: distcc network setup
+    tags: distcc
+    lineinfile:
+      path: /etc/default/distcc
+      regexp: '^ALLOWEDNETS'
+      line: 'ALLOWEDNETS="127.0.0.1 172.0.0.0/8"'
+  - name: zerconf fix
+    tags: distcc
+    lineinfile:
+      path: /etc/default/distcc
+      regexp: '^ZEROCONF'
+      state: absent
+
+  - name: zerconf fix
+    lineinfile:
+      path: /etc/distcc/hosts
+      regexp: '^\+zeroconf'
+      state: absent
+    tags: zeroconf
+
+  - name: add listener
+    tags: distcc
+    lineinfile:
+      path: /etc/default/distcc
+      regexp: '^LISTENER='
+      line: 'LISTENER="{{ ec2_private_ip_address }}"'
+
+  - name: collect compiler slaves
+    #192.168.0.3,lzo,cpp 192.168.0.4,lzo,cpp #cpp for pump mode
+    # they say pump mode doesn't work well with ccache, so we skip this
+    set_fact:
+      distcc_hosts: "
+      {%- set ips = [] %}
+      {%- set master_host = groups['tag_Name_zookeeper'][0] %}
+      {%- for zk in groups['tag_Name_zookeeper'] %}
+        {%- set internal_ip = hostvars[zk]['ansible_default_ipv4']['address'] %}
+        {%- if zk ==  master_host %}
+          {{- ips.append( 'localhost' )}}
+        {%- else %}
+          {{- ips.append( internal_ip+',lzo' )}}
+        {%- endif %}
+      {%- endfor %}
+      {{- ips | join(' ') -}}
+      "
+    register: distcc_hosts
+
+  - name: dbg
+    when:
+      - inventory_hostname == groups['tag_Name_zookeeper'][0]
+    debug: var=distcc_hosts
+    tags: debug
+
+  - name: write master distcc config
+    when:
+      - inventory_hostname == groups['tag_Name_zookeeper'][0]
+    lineinfile:
+      path: /etc/distcc/hosts
+      line: "{{ distcc_hosts }}"
+
+    tags: config
+
+  - name: start distcc service
+    service:
+      name: distcc
+      state: restarted
+
+
+

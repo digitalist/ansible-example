@@ -1,0 +1,36 @@
+# this book has default vars for all other books
+
+# override syntax:
+
+# OS image we install (ubuntu something here)
+# ami_id: "ami-97e953f8" #ubuntu 16.04
+# "ami-c041d3af" ubuntu 17.10 with gcc6
+ami_id: "{{ eami | default('ami-c041d3af') }}"
+
+# aws region, it's important. see docs and use what's better for you
+ec_region: "{{ eregion | default('eu-central-1') }}"
+
+# machine configuration, t2.micro is default, smol iron.
+# t2.xlarge
+ec_instance_type: "{{ etype | default('t2.micro') }}"
+
+# number of instances of given condition in our playbook conditions we want to have
+ec_exact_count: "{{ ecount | default('1') }}"
+
+# let's tag them by default
+ec_tag: "{{ etag | default('demo') }}"
+
+# this is useful for read-only tasks, it will capture all your instances
+ec_filters_tag_name: "{{ etag | default('*') }}"
+ec_filters_tag_role: "{{ erole | default('*') }}"
+
+# in case of an error we don't want to kill important machine, let's stop it
+# you can always override it with "ekill=absent"
+ec_kill_state: "{{ ekill | default('stopped') }}"
+
+# bad practice: for the sake of simplicity allow ssh access for every machine,
+# assuming 'ssh' group allows port 22 access
+ec_group: "{{ egroup | default('ssh') }}"
+
+# see keypair.yml
+ec_key: "{{ ekey | default ('default_ec2_key') }}"

@@ -1,0 +1,9 @@
+#this book is a test: it outputs a variable from "ec-vars.yml"
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+  - include_vars: "ec-vars.yml"
+  - name: "test debug"
+    debug:
+      msg: "ami id is {{ ami_id }}"

@@ -1,0 +1,19 @@
+# modified  cluster example from https://github.com/AnsibleShipyard/ansible-zookeeper
+
+- name: Installing ZooKeeper Cluster
+  # client will be installed to ./opt/zookeeper-%VERSION%/bin/zkCli.sh: ./opt/zookeeper-3.4.11/bin/zkCli.sh
+  hosts: "{{etag | default('tag_Name_zookeeper')}}"
+  become: true
+  roles:
+    - role: AnsibleShipyard.ansible-zookeeper
+
+      # for every host in tagged group we set internal ip from hostvars
+      # ips[] list "returns" to zookeeper_hosts var, which this role uses
+      zookeeper_hosts: "
+        {%- set ips = [] %}
+        {%- for zk in groups['tag_Name_zookeeper'] %}
+        {%- set internal_ip = hostvars[zk]['ansible_default_ipv4']['address'] %}
+          {{- ips.append(dict(host=zk, ip=internal_ip, id=loop.index)) }}
+        {%- endfor %}
+        {{- ips -}}
+        "

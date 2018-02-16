@@ -1,0 +1,87 @@
+- name: Prepare clickhouse build
+  hosts: "{{erole | default('tag_Role_master')}}"
+
+  tasks:
+  - name: Set buildpath
+    set_fact:
+      build_path: /home/{{remote_user}}/build/cl/ClickHouse
+# IN CASE OF FIRE:
+#  - name: disable internal compiler
+#    replace:
+#      path: /home/{{remote_user}}/build/cl/ClickHouse/release
+#      regexp: 'USE_EMBEDDED_COMPILER=1'
+#      replace: 'USE_EMBEDDED_COMPILER=0'
+
+  - name: Rollback git changes
+    command: "git checkout ."
+    args:
+      chdir: "{{ build_path }}"
+
+  - name: Clean git tree
+    command: "git clean -fdx"
+    args:
+      chdir: "{{ build_path }}"
+
+  - name: Disable PIE. Doesn't work with distcc due to gcc -spec flag.
+    replace:
+      path: "{{build_path}}/debian/rules"
+      regexp: ',-pie'
+      replace: ''
+
+  - name: Enable distcc
+    replace:
+      path: "{{build_path}}/release"
+      regexp: 'debuild'
+      replace: 'debuild -eDISTCC_VERBOSE -eDISTCC_LOG  -eCCACHE_PREFIX'
+
+  - name: Run build
+    command: "bash release"
+    args:
+      chdir: "/home/{{remote_user}}/build/cl/ClickHouse"
+    async: 3600
+    poll: 5
+    environment:
+        PATH: "/usr/lib/ccache:{{ ansible_env.PATH }}"
+        CCACHE_PREFIX: distcc
+
+# We're using distcc, so let's use MORE CORES, as recommended:
+        THREAD_COUNT: 24
+        DISTCC_LOG: "/home/{{remote_user}}/build/cl/ClickHouse/distcc.log"
+
+# Some example distcc env-vars:
+        DISTCC_VERBOSE: 0
+        DISTCC_SKIP_LOCAL_RETRY: 0
+        DISTCC_FALLBACK: 1
+#        DISTCC_HOSTS: "localhost 172.31.26.25,lzo 172.31.30.248,lzo"
+#        DISTCC_ARGS: "--allow 127.0.0.1"
+
+# You can enable these, if you're building with clang (clickhouse-install-clang.yml)
+#        CC: clang-6.0
+#        CXX: clang++-6.0
+#        DEB_CC: clang-6.0
+#        DEB_CXX: clang++-6.0
+
+
+  - name: Rollback git changes
+    command: "git checkout ."
+    args:
+      chdir: "{{ build_path }}"
+
+  - name: Clean git tree
+    command: "git clean -fdx"
+    args:
+      chdir: "{{ build_path }}"
+
+# This is not needed if you don't install clickhouse on local machine and/or
+# prefer (as you should) to distribute files from AWS host inside internal network
+  - name: Archive build
+    archive:
+      path: "/home/{{remote_user}}/build/cl/*.deb"
+      dest: "/home/{{remote_user}}/clickhouse.tar.bz2"
+      format: bz2
+    tags: getbuild
+  - name: Fetch build
+    fetch:
+      dest: "/tmp/clickhouse/"
+      src: "/home/{{remote_user}}/clickhouse.tar.bz2"
+      flat: true

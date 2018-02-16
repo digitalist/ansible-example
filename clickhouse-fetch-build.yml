@@ -1,0 +1,17 @@
+- name: Archive & fetch clickhouse *.deb files
+  hosts: "{{erole | default('tag_Role_master')}}"
+
+  tasks:
+# This is not needed if you don't install clickhouse on local machine and/or
+# prefer (as you should) to distribute files from AWS host inside internal network
+  - name: Archive build
+    archive:
+      path: "/home/{{remote_user}}/build/cl/*.deb"
+      dest: "/home/{{remote_user}}/clickhouse.tar.bz2"
+      format: bz2
+    tags: getbuild
+  - name: Fetch build
+    fetch:
+      dest: "/tmp/clickhouse/"
+      src: "/home/{{remote_user}}/clickhouse.tar.bz2"
+      flat: true

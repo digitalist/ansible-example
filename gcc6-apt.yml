@@ -1,0 +1,26 @@
+- name: APT
+  hosts: "{{etag | default('tag_Name_zookeeper')}}"
+  become: true
+  tasks:
+#sudo apt-get install software-properties-common
+#sudo apt-add-repository
+#sudo apt-get update
+#sudo apt-get install gcc-6 g++-6
+    - name: openjdk-8-jdk
+      apt:
+        name: software-properties-common
+        state: present
+        update_cache: yes
+    - name: update cache
+      apt:
+        update_cache: yes
+    - name: gcc6 apt
+      apt_repository:
+        repo: 'ppa:ubuntu-toolchain-r/test'
+        state: present
+    - name: Install dev-libs
+      package:
+        state: present
+        name: "{{ item }}"
+      with_items: [gcc-6, g++-6]
+

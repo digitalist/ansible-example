@@ -1,0 +1,60 @@
+#
+# modified  cluster example from https://github.com/AnsibleShipyard/ansible-zookeeper
+#
+#
+- name: EC2 ips/internal ips
+  # client will be installed to ./opt/zookeeper-%VERSION%/bin/zkCli.sh: ./opt/zookeeper-3.4.11/bin/zkCli.sh
+  hosts: "{{etag | default('tag_Name_zookeeper')}}"
+  become: true
+  vars:
+    ips: []
+    ipd:
+      server:
+        ip: 1
+        host: 1
+        id: 1
+#    zookeeper_hosts: "
+#      # {%- set ips = [] %}
+#      {%- for zk in groups['tag_Name_zookeeper'] %}
+#        {{- ips.append(dict(host=zk, id=loop.index, priv=ec2_private_ip_address)) }}
+#      {%- endfor %}
+#      {{- ips -}}
+#      "
+
+#    zookeeper_hosts: "
+#      {%- for zk in groups['tag_Name_zookeeper'] %}
+#        {{% ipdict.append(dict(host=zk, id=loop.index, ip=ec2_private_ip_address)) %}}
+#        {{- ips.append(dict(host=zk, id=loop.index, ip=ec2_private_ip_address)) }}
+#      {%- endfor %}
+#      {{- ipdict -}}
+#      {{- ips -}}
+#      "
+
+
+#  tasks:
+#      # Make temporary list (will get it as tmp_users.results)
+#    - set_fact:
+#        tmp_user:
+#          password: "{{ passwords[item.login] }}"
+#          age: "{{ ((ansible_date_time.date | to_datetime('%Y-%m-%d')
+#                   - (item.birth | to_datetime('%Y-%m-%d'))).days/365) | int }}"
+#      with_items: "{{ users }}"
+#      register: tmp_users
+#      # Join original items with temporary ones
+#    - set_fact:
+#        tmp_user: "{{ item.item | combine(item.ansible_facts.tmp_user) }}"
+#      with_items: "{{ tmp_users.results }}"
+#      register: tmp_users
+#      # Get clean results my mapping only one key from tmp_user.results
+#    - debug:
+#        msg: "{{ tmp_users.results | map(attribute='ansible_facts.tmp_user') | list }}"
+
+
+
+  tasks:
+  - with_items: "{{groups['tag_Name_zookeeper']}}"
+    set_fact:
+      #ips: "{{ ips }} + '{{ ec2_private_ip_address }}' ]"
+      ipd_temp: "{{ ipd.server | combine ({'host':item, 'ip':ec2_private_ip_address }  ) }}"
+  - debug: var=ipd_temp
+

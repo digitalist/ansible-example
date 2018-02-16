@@ -1,0 +1,26 @@
+# modified  cluster example from https://github.com/AnsibleShipyard/ansible-zookeeper
+
+- name: Prepare clickhouse build
+  hosts: "{{etag | default('tag_Name_zookeeper')}}"
+  vars:
+    file_name: "{{file_name}}"
+  tasks:
+  - file:
+      path: "/home/{{remote_user}}/temp/deploy/{{ file_name | basename }}/"
+      state: directory
+      mode: 0755
+  - name: Unpack build
+    unarchive:
+      dest: "/home/{{remote_user}}/temp/deploy/{{ file_name | basename }}/"
+      src: "{{ file_name }}"
+    tags:
+      - deploy
+  - name: Install a .deb packages
+    become: true
+    raw: "dpkg -i /home/{{remote_user}}/temp/deploy/{{ file_name | basename }}/*.deb"
+    tags: [deploy, build]
+#   Will not work without zookeeper
+#  - name: start clickhouse service
+#    service:
+#      name: clickhouse-server
+#      state: restarted

@@ -1,0 +1,10 @@
+- name: JDK-8
+  hosts: "{{etag | default('tag_Name_zookeeper')}}"
+  become: true
+  tasks:
+    - name: openjdk-8-jdk
+      apt:
+        name: openjdk-8-jdk
+        state: present
+        update_cache: yes
+
